@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -78,8 +79,19 @@ func HandlerWithKey(cacheSize int, ttl time.Duration, keyFunc ...func(r *http.Re
 			// mark the request that actually processes the response
 			first := false
 
+			var (
+				err error
+				val interface{}
+			)
+
 			// process request (single flight)
-			val, err := cache.GetFresh(r.Context(), key, func(ctx context.Context) (interface{}, error) {
+			val, err = cache.GetFresh(r.Context(), key, func(ctx context.Context) (interface{}, error) {
+				defer func() {
+					// need a separate panic recoverer as separate recoverer middleware can't catch panics in separate goroutine
+					if r := recover(); r != nil {
+						err = fmt.Errorf("recovered panicking request:%#v, stack:%s", r, string(debug.Stack()))
+					}
+				}()
 				first = true
 				buf := bytes.NewBuffer(nil)
 				ww := &responseWriter{ResponseWriter: w, tee: buf}
