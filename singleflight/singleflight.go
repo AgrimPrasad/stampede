@@ -13,6 +13,8 @@ package singleflight
 
 import (
 	"context"
+	"fmt"
+	"runtime/debug"
 	"sync"
 )
 
@@ -66,6 +68,14 @@ func (g *Group) Do(ctx context.Context, key interface{}, fn func(ctx context.Con
 	g.mu.Unlock()
 
 	go func() {
+		defer func() {
+			// need a separate panic recoverer as separate recoverer middleware can't catch panics in separate goroutine
+			if r := recover(); r != nil {
+				c.val = nil
+				c.err = fmt.Errorf("recovered panicking request:%#v, stack:%s", r, string(debug.Stack()))
+				close(c.done)
+			}
+		}()
 		c.val, c.err = fn(ctx)
 		close(c.done)
 	}()
