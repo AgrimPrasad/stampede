@@ -89,6 +89,8 @@ func HandlerWithKey(cacheSize int, ttl time.Duration, keyFunc ...func(r *http.Re
 				defer func() {
 					// need a separate panic recoverer as separate recoverer middleware can't catch panics in separate goroutine
 					if r := recover(); r != nil {
+						// shouldn't return in case of panic as it has not responded to client
+						first = false
 						err = fmt.Errorf("recovered panicking request:%#v, stack:%s", r, string(debug.Stack()))
 					}
 				}()
