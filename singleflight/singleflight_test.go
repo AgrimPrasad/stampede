@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-chi/stampede/singleflight"
+	"github.com/AgrimPrasad/stampede/singleflight"
 )
 
 func TestDo(t *testing.T) {

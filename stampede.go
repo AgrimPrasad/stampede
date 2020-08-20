@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AgrimPrasad/stampede/singleflight"
 	"github.com/cespare/xxhash/v2"
-	"github.com/go-chi/stampede/singleflight"
 	lru "github.com/hashicorp/golang-lru"
 )
 
